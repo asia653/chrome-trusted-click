@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trusted Click Debugger</title>
+  <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans w-[380px] overflow-hidden select-none">
+  <!-- Top Header -->
+  <header class="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+    <div class="flex items-center gap-2.5">
+      <img src="icons/icon-48.png" alt="Logo" class="w-7 h-7 rounded-lg shadow-sm">
+      <div>
+        <h1 class="text-sm font-bold tracking-wide text-white leading-tight">Trusted Click Debugger</h1>
+        <p class="text-[10px] text-slate-400 font-mono leading-tight">CDP Input.dispatchMouseEvent</p>
+      </div>
+    </div>
+    <!-- Attach / Detach Badge & Toggle -->
+    <div class="flex items-center gap-1.5">
+      <span id="statusIndicatorDot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+      <button id="btnToggleAttach" class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+        Attach
+      </button>
+    </div>
+  </header>
+
+  <!-- Active Tab Info Strip -->
+  <div class="px-3.5 py-2 bg-slate-850 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
+    <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
+      <span class="text-slate-500 font-mono">Tab:</span>
+      <span id="tabTitle" class="text-slate-300 font-medium truncate">Detecting active tab...</span>
+    </div>
+    <span id="tabStatusBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono whitespace-nowrap">
+      Detached
+    </span>
+  </div>
+
+  <!-- Main Body Content -->
+  <main class="p-3.5 flex flex-col gap-3">
+    <!-- Primary Hero Action: Pick Element -->
+    <button id="btnPickElement" class="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98">
+      <span class="text-base">🎯</span>
+      <span>Pick Element & Click</span>
+      <span class="text-xs bg-indigo-700 px-1.5 py-0.5 rounded text-indigo-200 font-mono">Esc to exit</span>
+    </button>
+
+    <!-- Method Switcher / Tabs -->
+    <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-800 rounded-lg text-xs font-semibold">
+      <button id="tabBtnSelector" class="py-1.5 px-3 rounded-md bg-slate-700 text-white shadow-xs transition-colors text-center">
+        By Selector
+      </button>
+      <button id="tabBtnCoords" class="py-1.5 px-3 rounded-md text-slate-400 hover:text-slate-200 transition-colors text-center">
+        By Coordinates
+      </button>
+    </div>
+
+    <!-- Section 1: Click by Selector -->
+    <div id="sectionSelector" class="flex flex-col gap-2">
+      <label for="inputSelector" class="text-xs font-medium text-slate-300 flex items-center justify-between">
+        <span>CSS Selector</span>
+        <span class="text-[10px] text-slate-500 font-mono">e.g. #submit, button.primary</span>
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          id="inputSelector"
+          type="text"
+          placeholder="#button-id, .btn, input[type='submit']"
+          class="flex-1 bg-slate-800 text-slate-100 text-xs px-3 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 font-mono transition-colors"
+        >
+        <button id="btnClickSelector" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap">
+          Click
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 2: Click by Coordinates (Hidden by default) -->
+    <div id="sectionCoords" class="hidden flex flex-col gap-2">
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label for="inputCoordX" class="text-xs font-medium text-slate-300 block mb-1">
+            X (Viewport px)
+          </label>
+          <input
+            id="inputCoordX"
+            type="number"
+            placeholder="100"
+            min="0"
+            class="w-full bg-slate-800 text-slate-100 text-xs px-3 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 font-mono transition-colors"
+          >
+        </div>
+        <div>
+          <label for="inputCoordY" class="text-xs font-medium text-slate-300 block mb-1">
+            Y (Viewport px)
+          </label>
+          <input
+            id="inputCoordY"
+            type="number"
+            placeholder="250"
+            min="0"
+            class="w-full bg-slate-800 text-slate-100 text-xs px-3 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 font-mono transition-colors"
+          >
+        </div>
+      </div>
+      <button id="btnClickCoords" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95">
+        Dispatch Click at (X, Y)
+      </button>
+    </div>
+
+    <!-- Collapsible Options -->
+    <details class="bg-slate-800 rounded-lg border border-slate-700 text-xs overflow-hidden">
+      <summary class="px-3 py-2 font-semibold text-slate-300 hover:text-white cursor-pointer select-none flex items-center justify-between">
+        <span>⚙️ Click Options</span>
+        <span class="text-[10px] text-slate-400 font-mono">Button, Delay, Detach</span>
+      </summary>
+      <div class="p-3 pt-1 border-t border-slate-700 flex flex-col gap-2.5">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="selectButton" class="text-[11px] text-slate-400 block mb-1">Mouse Button</label>
+            <select id="selectButton" class="w-full bg-slate-900 text-slate-200 text-xs p-1.5 rounded border border-slate-700 focus:outline-none focus:border-indigo-500">
+              <option value="left" selected>Left Click</option>
+              <option value="right">Right Click</option>
+              <option value="middle">Middle Click</option>
+            </select>
+          </div>
+          <div>
+            <label for="selectClickCount" class="text-[11px] text-slate-400 block mb-1">Click Count</label>
+            <select id="selectClickCount" class="w-full bg-slate-900 text-slate-200 text-xs p-1.5 rounded border border-slate-700 focus:outline-none focus:border-indigo-500">
+              <option value="1" selected>Single Click</option>
+              <option value="2">Double Click</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 items-center">
+          <div>
+            <label for="inputDelay" class="text-[11px] text-slate-400 block mb-1">Hold Delay (ms)</label>
+            <input
+              id="inputDelay"
+              type="number"
+              value="60"
+              min="20"
+              max="1000"
+              class="w-full bg-slate-900 text-slate-200 text-xs p-1.5 rounded border border-slate-700 focus:outline-none focus:border-indigo-500 font-mono"
+            >
+          </div>
+          <div class="flex items-center gap-2 pt-3">
+            <input id="checkAutoDetach" type="checkbox" class="rounded border-slate-700 text-indigo-600 focus:ring-0">
+            <label for="checkAutoDetach" class="text-[11px] text-slate-300 cursor-pointer select-none">
+              Auto-detach after click
+            </label>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- Console Bridge Quick Snippet -->
+    <div class="p-2.5 bg-slate-800 rounded-lg border border-slate-700 flex flex-col gap-1.5">
+      <div class="flex items-center justify-between text-[11px]">
+        <span class="text-slate-400 font-medium">DevTools Console API:</span>
+        <button id="btnCopySnippet" class="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">
+          Copy
+        </button>
+      </div>
+      <div class="bg-slate-900 px-2.5 py-1.5 rounded text-[11px] font-mono text-emerald-400 truncate select-all">
+        window.sendTrustedClick('#selector')
+      </div>
+    </div>
+
+    <!-- Status / Notification Banner -->
+    <div id="statusBanner" class="hidden p-2 rounded-lg text-xs font-medium border flex items-center gap-2">
+      <span id="statusBannerIcon">ℹ️</span>
+      <span id="statusBannerText" class="truncate flex-1">Status message</span>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs">
+    <button id="btnOpenTestPage" class="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1.5">
+      <span>🧪 Open Test Playground</span>
+    </button>
+    <span class="text-slate-500 text-[10px] font-mono">v1.0.0</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trusted Click Debugger - Verification Playground</title>
+  <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-6">
+  <div class="max-w-5xl mx-auto flex flex-col gap-6">
+
+    <!-- Header Section -->
+    <header class="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center gap-4">
+        <img src="icons/icon-48.png" alt="Logo" class="w-12 h-12 rounded-xl shadow-md">
+        <div>
+          <h1 class="text-2xl font-bold tracking-wide text-white flex items-center gap-2">
+            Trusted Click Playground
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-900/30 text-indigo-300 border border-indigo-500/30">
+              CDP Verification Lab
+            </span>
+          </h1>
+          <p class="text-sm text-slate-400 mt-1">
+            Test and verify native browser mouse events where <code class="text-emerald-400 font-mono font-semibold">event.isTrusted === true</code>.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btnClearLog" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-colors">
+          Clear Event Stream
+        </button>
+      </div>
+    </header>
+
+    <!-- Console Instruction Callout -->
+    <div class="p-4 bg-indigo-950 border border-indigo-500/30 rounded-xl flex items-start gap-3">
+      <span class="text-xl">💡</span>
+      <div class="flex-1 text-xs text-indigo-200 flex flex-col gap-1.5">
+        <p class="font-semibold text-white">Console Quick-Test Ready:</p>
+        <p class="text-slate-300">
+          Open Chrome DevTools Console (<kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-[11px] font-mono text-slate-200">F12</kbd> or <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-[11px] font-mono text-slate-200">Cmd+Opt+I</kbd>) and test right away:
+        </p>
+        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 font-mono text-emerald-400 flex items-center justify-between">
+          <code>await window.sendTrustedClick('#btnAntiBot');</code>
+          <button id="btnCopyConsoleCode" class="text-indigo-400 hover:text-white font-semibold text-xs ml-4">
+            Copy
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Test Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Test 1: Anti-Bot Defense Simulation -->
+      <div class="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-lg flex flex-col justify-between gap-4">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🛡️</span>
+              <span>1. Anti-Bot Simulator</span>
+            </h2>
+            <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              Integrity Check
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mb-4">
+            Blocks synthetic JS clicks (<code class="font-mono text-red-400">isTrusted: false</code>) and only accepts hardware/CDP trusted clicks (<code class="font-mono text-emerald-400">isTrusted: true</code>).
+          </p>
+
+          <div id="antiBotStatus" class="p-3 rounded-lg border border-slate-800 bg-slate-950 text-xs font-mono text-slate-400 mb-4 flex items-center gap-2">
+            <span>Status:</span>
+            <span id="antiBotStatusText" class="font-semibold text-slate-300">Awaiting Click...</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button id="btnSyntheticTest" class="py-2.5 px-3 rounded-lg bg-red-900/30 hover:bg-red-600 text-red-200 border border-red-500/30 text-xs font-semibold transition-all active:scale-95 text-center">
+            Trigger Fake JS Click
+            <span class="block text-[10px] text-red-400 font-normal mt-0.5">element.click()</span>
+          </button>
+
+          <button id="btnAntiBot" class="py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-all active:scale-95 text-center">
+            Protected Target
+            <span class="block text-[10px] text-emerald-200 font-normal mt-0.5">Requires isTrusted: true</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Test 2: Interactive Coordinate Bullseye -->
+      <div class="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-lg flex flex-col justify-between gap-4">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🎯</span>
+              <span>2. Coordinate Target Zone</span>
+            </h2>
+            <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              Spatial Test
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">
+            Click anywhere inside the target zone or dispatch to exact coordinates. Shows click position and trust status.
+          </p>
+        </div>
+
+        <div id="targetZone" class="h-32 bg-slate-950 border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-lg flex flex-col items-center justify-center cursor-crosshair relative overflow-hidden transition-colors select-none">
+          <span class="text-slate-500 text-xs font-mono pointer-events-none">Crosshair Target Zone</span>
+          <span id="targetZoneCoords" class="text-indigo-400 text-[11px] font-mono font-semibold mt-1 pointer-events-none">
+            Click here or send coordinates
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+          <span>Target ID: <code class="text-slate-200">#targetZone</code></span>
+          <button id="btnClickTargetViaExt" class="text-indigo-400 hover:text-indigo-300 font-medium">
+            Click Center via Script
+          </button>
+        </div>
+      </div>
+
+      <!-- Test 3: Form Controls & Native Toggles -->
+      <div class="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-lg flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🔘</span>
+            <span>3. Form Controls & Buttons</span>
+          </h2>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+            DOM Form Elements
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">
+          Verify checkbox toggle, radio button, and double-click handler trust validation.
+        </p>
+
+        <div class="flex flex-col gap-3 text-xs bg-slate-950 p-3.5 rounded-lg border border-slate-800">
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <input id="testCheckbox" type="checkbox" class="w-4 h-4 rounded text-indigo-600 border-slate-700">
+            <span class="text-slate-300">Interactive Checkbox (<code class="text-slate-400 font-mono">#testCheckbox</code>)</span>
+            <span id="checkboxTrustBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 ml-auto">Untouched</span>
+          </label>
+
+          <div class="border-t border-slate-800 pt-2.5 flex items-center justify-between">
+            <span class="text-slate-300">Double Click Test:</span>
+            <button id="btnDoubleClick" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold text-xs border border-slate-700 transition-colors">
+              Double Click Me (#btnDoubleClick)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test 4: File Input Trigger -->
+      <div class="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-lg flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📁</span>
+            <span>4. File Input Trigger</span>
+          </h2>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+            Native Dialog
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">
+          Browsers frequently block synthetic JS clicks on file inputs unless dispatched as real native trusted user events.
+        </p>
+
+        <div class="flex flex-col gap-3 text-xs bg-slate-950 p-3.5 rounded-lg border border-slate-800">
+          <input id="testFileInput" type="file" class="hidden">
+          <button id="btnTriggerFile" class="py-2.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition-all active:scale-95 text-center">
+            Click to Open File Picker (#btnTriggerFile)
+          </button>
+          <span id="filePickerStatus" class="text-[11px] font-mono text-slate-400 text-center">
+            Awaiting native click...
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Event Stream Log Table -->
+    <div class="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-xl flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📋</span>
+          <span>Live Mouse Event Stream</span>
+        </h2>
+        <span class="text-xs text-slate-400 font-mono" id="eventCounter">0 events logged</span>
+      </div>
+
+      <div class="overflow-x-auto max-h-80 border border-slate-800 rounded-lg bg-slate-950">
+        <table class="w-full text-left text-xs font-mono divide-y divide-slate-800">
+          <thead class="bg-slate-900 text-slate-400 sticky top-0">
+            <tr>
+              <th class="px-3.5 py-2.5">Time</th>
+              <th class="px-3.5 py-2.5">Event</th>
+              <th class="px-3.5 py-2.5">isTrusted</th>
+              <th class="px-3.5 py-2.5">Coordinates (X, Y)</th>
+              <th class="px-3.5 py-2.5">Button</th>
+              <th class="px-3.5 py-2.5">Target Element</th>
+            </tr>
+          </thead>
+          <tbody id="eventLogBody" class="divide-y divide-slate-800 text-slate-300">
+            <tr>
+              <td colspan="6" class="px-3.5 py-6 text-center text-slate-500">
+                No events recorded yet. Click on any test card above or use the extension popup / console!
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="test.js"></script>
+</body>
+</html>
